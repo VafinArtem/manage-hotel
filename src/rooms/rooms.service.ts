@@ -24,6 +24,10 @@ export class RoomsService {
     return this.roomsModel.findById(id).exec();
   }
 
+  async getAll() {
+    return this.roomsModel.find({});
+  }
+
   async update(id: string, dto: CreateRoomDto) {
     return this.roomsModel
       .updateOne(

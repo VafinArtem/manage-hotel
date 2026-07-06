@@ -34,6 +34,11 @@ export class RoomsController {
     return await this.roomsService.get(id);
   }
 
+  @Get('getAll')
+  async getAll() {
+    return await this.roomsService.getAll();
+  }
+
   @Patch(':id')
   async patch(@Param('id') id: string, @Body() dto: CreateRoomDto) {
     return await this.roomsService.update(id, dto);

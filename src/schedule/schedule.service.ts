@@ -18,12 +18,12 @@ export class ScheduleService {
   ) {}
 
   async create(dto: CreateScheduleDto) {
-    const existItem = await this.scheduleModel.find({
+    const exists = await this.scheduleModel.exists({
       roomId: dto.roomId,
       date: dto.date,
     });
 
-    if (existItem) {
+    if (exists) {
       throw new HttpException(SCHEDULE_ITEM_FOUND, HttpStatus.CONFLICT);
     }
 
@@ -40,6 +40,10 @@ export class ScheduleService {
         },
       )
       .exec();
+  }
+
+  async getAll() {
+    return this.scheduleModel.find({ isDeleted: false });
   }
 
   async get(id: string) {

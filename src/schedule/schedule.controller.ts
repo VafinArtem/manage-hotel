@@ -29,6 +29,11 @@ export class ScheduleController {
     return await this.scheduleService.get(id);
   }
 
+  @Get('getAll')
+  async getAll() {
+    return await this.scheduleService.getAll();
+  }
+
   @Patch(':id')
   async patch(@Param('id') id: string, @Body() dto: CreateScheduleDto) {
     return await this.scheduleService.update(id, dto);
