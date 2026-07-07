@@ -28,7 +28,7 @@ export class ScheduleService {
     }
 
     const newScheduleItem = new this.scheduleModel(dto);
-    await newScheduleItem.save();
+    return await newScheduleItem.save();
   }
 
   async delete(id: string) {
