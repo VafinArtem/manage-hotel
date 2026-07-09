@@ -153,6 +153,17 @@ describe('RoomsController (e2e)', () => {
 
       expect(res.body.matchedCount).toBe(0);
     });
+
+    it('should return 400 for invalid field values', async () => {
+      await request(app.getHttpServer())
+        .patch(`/rooms/${new Types.ObjectId().toString()}`)
+        .send({
+          roomNumber: 'not-a-number',
+          roomType: 'INVALID_TYPE',
+          seaView: 'not-boolean',
+        })
+        .expect(400);
+    });
   });
 
   describe('DELETE /rooms/:id', () => {

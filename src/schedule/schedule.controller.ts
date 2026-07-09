@@ -32,6 +32,7 @@ export class ScheduleController {
     return await this.scheduleService.create(dto);
   }
 
+  @UsePipes(new ValidationPipe())
   @Patch(':id')
   async patch(@Param('id') id: string, @Body() dto: CreateScheduleDto) {
     return await this.scheduleService.update(id, dto);

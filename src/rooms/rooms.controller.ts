@@ -39,6 +39,7 @@ export class RoomsController {
     return await this.roomsService.create(dto);
   }
 
+  @UsePipes(new ValidationPipe())
   @Patch(':id')
   async patch(@Param('id') id: string, @Body() dto: CreateRoomDto) {
     return await this.roomsService.update(id, dto);

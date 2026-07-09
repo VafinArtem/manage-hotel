@@ -49,6 +49,17 @@ describe('ScheduleController (e2e)', () => {
       await request(app.getHttpServer()).delete(`/schedule/${id}`).expect(200);
     });
 
+    it('should return 400 for invalid field values', async () => {
+      await request(app.getHttpServer())
+        .post('/schedule/create')
+        .send({
+          date: 12345,
+          roomId: 'not-a-mongo-id',
+          isDeleted: 'not-boolean',
+        })
+        .expect(400);
+    });
+
     it('should return 409 for duplicate roomId + date', async () => {
       const dto = {
         date: '2026-07-16',
@@ -248,6 +259,17 @@ describe('ScheduleController (e2e)', () => {
         .expect(200);
 
       expect(res.body).toEqual({});
+    });
+
+    it('should return 400 for invalid field values', async () => {
+      await request(app.getHttpServer())
+        .patch(`/schedule/${new Types.ObjectId().toString()}`)
+        .send({
+          date: 12345,
+          roomId: 'not-a-mongo-id',
+          isDeleted: 'not-boolean',
+        })
+        .expect(400);
     });
   });
 
