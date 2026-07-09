@@ -7,6 +7,8 @@ import {
   Param,
   Patch,
   Post,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { RoomsService } from './rooms.service';
@@ -31,11 +33,13 @@ export class RoomsController {
     return room;
   }
 
+  @UsePipes(new ValidationPipe())
   @Post('create')
   async create(@Body() dto: CreateRoomDto) {
     return await this.roomsService.create(dto);
   }
 
+  @UsePipes(new ValidationPipe())
   @Patch(':id')
   async patch(@Param('id') id: string, @Body() dto: CreateRoomDto) {
     return await this.roomsService.update(id, dto);
