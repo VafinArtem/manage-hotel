@@ -14,14 +14,9 @@ import { ScheduleService } from './schedule.service';
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
 
-  @Post('create')
-  async create(@Body() dto: CreateScheduleDto) {
-    await this.scheduleService.create(dto);
-  }
-
-  @Delete(':id')
-  async delete(@Param('id') id: string) {
-    await this.scheduleService.delete(id);
+  @Get('getAll')
+  async getAll() {
+    return await this.scheduleService.getAll();
   }
 
   @Get(':id')
@@ -29,13 +24,18 @@ export class ScheduleController {
     return await this.scheduleService.get(id);
   }
 
-  @Get('getAll')
-  async getAll() {
-    return await this.scheduleService.getAll();
+  @Post('create')
+  async create(@Body() dto: CreateScheduleDto) {
+    return await this.scheduleService.create(dto);
   }
 
   @Patch(':id')
   async patch(@Param('id') id: string, @Body() dto: CreateScheduleDto) {
     return await this.scheduleService.update(id, dto);
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string) {
+    await this.scheduleService.delete(id);
   }
 }

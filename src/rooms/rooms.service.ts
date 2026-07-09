@@ -13,7 +13,7 @@ export class RoomsService {
 
   async create(dto: CreateRoomDto) {
     const newRoom = new this.roomsModel(dto);
-    await newRoom.save();
+    return await newRoom.save();
   }
 
   async delete(id: string) {

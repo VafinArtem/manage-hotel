@@ -15,9 +15,30 @@ import { RoomsService } from './rooms.service';
 export class RoomsController {
   constructor(private readonly roomsService: RoomsService) {}
 
+  @Get('getAll')
+  async getAll() {
+    return await this.roomsService.getAll();
+  }
+
+  @Get(':id')
+  async getById(@Param('id') id: string) {
+    const room = await this.roomsService.get(id);
+
+    if (!room) {
+      throw new NotFoundException(`Комната c ${id} не найдена`);
+    }
+
+    return room;
+  }
+
   @Post('create')
   async create(@Body() dto: CreateRoomDto) {
-    await this.roomsService.create(dto);
+    return await this.roomsService.create(dto);
+  }
+
+  @Patch(':id')
+  async patch(@Param('id') id: string, @Body() dto: CreateRoomDto) {
+    return await this.roomsService.update(id, dto);
   }
 
   @Delete(':id')
@@ -27,20 +48,5 @@ export class RoomsController {
     if (!deletedDoc) {
       throw new NotFoundException(`Комната c ${id} не найдена`);
     }
-  }
-
-  @Get(':id')
-  async getById(@Param('id') id: string) {
-    return await this.roomsService.get(id);
-  }
-
-  @Get('getAll')
-  async getAll() {
-    return await this.roomsService.getAll();
-  }
-
-  @Patch(':id')
-  async patch(@Param('id') id: string, @Body() dto: CreateRoomDto) {
-    return await this.roomsService.update(id, dto);
   }
 }
