@@ -47,6 +47,17 @@ describe('RoomsController (e2e)', () => {
 
       await request(app.getHttpServer()).delete(`/rooms/${id}`).expect(200);
     });
+
+    it('should return 400 for invalid field values', async () => {
+      await request(app.getHttpServer())
+        .post('/rooms/create')
+        .send({
+          roomNumber: 'not-a-number',
+          roomType: 'INVALID_TYPE',
+          seaView: 'not-boolean',
+        })
+        .expect(400);
+    });
   });
 
   describe('GET /rooms/:id', () => {
