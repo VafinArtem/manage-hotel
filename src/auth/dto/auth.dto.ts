@@ -1,8 +1,8 @@
-import { IsEnum, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsPhoneNumber, IsString } from 'class-validator';
 import { Role } from '../../enums/role.enum';
 
 export class AuthDto {
-  @IsString()
+  @IsEmail()
   email: string;
 
   @IsString()
@@ -11,7 +11,7 @@ export class AuthDto {
   @IsString()
   name: string;
 
-  @IsString()
+  @IsPhoneNumber('RU')
   phone: string;
 
   @IsEnum(Role)
