@@ -7,9 +7,14 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../decorators/roles.decorator';
+import { Role } from '../enums/role.enum';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { RoomsService } from './rooms.service';
 
@@ -33,18 +38,24 @@ export class RoomsController {
     return room;
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin)
   @UsePipes(new ValidationPipe())
   @Post('create')
   async create(@Body() dto: CreateRoomDto) {
     return await this.roomsService.create(dto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin)
   @UsePipes(new ValidationPipe())
   @Patch(':id')
   async patch(@Param('id') id: string, @Body() dto: CreateRoomDto) {
     return await this.roomsService.update(id, dto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin)
   @Delete(':id')
   async delete(@Param('id') id: string) {
     const deletedDoc = await this.roomsService.delete(id);
