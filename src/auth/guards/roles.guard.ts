@@ -26,8 +26,6 @@ export class RolesGuard implements CanActivate {
       .switchToHttp()
       .getRequest<{ user?: { role?: Role } }>();
 
-    console.log(user);
-
     if (!user) {
       throw new UnauthorizedException('User not authenticated');
     }
