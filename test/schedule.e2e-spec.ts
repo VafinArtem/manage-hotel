@@ -5,8 +5,30 @@ import { App } from 'supertest/types';
 import { Types } from 'mongoose';
 import { AppModule } from '../src/app.module';
 
+const ADMIN_EMAIL = 'admin@test.ru';
+const USER_EMAIL = 'user@test.ru';
+const PASSWORD = 'password';
+
+async function loginAs(
+  app: INestApplication<App>,
+  email: string,
+): Promise<string> {
+  const res = await request(app.getHttpServer())
+    .post('/auth/login')
+    .send({ email, password: PASSWORD })
+    .expect(200);
+
+  return res.body.access_token;
+}
+
+function authHeader(token: string) {
+  return { Authorization: `Bearer ${token}` };
+}
+
 describe('ScheduleController (e2e)', () => {
   let app: INestApplication<App>;
+  let adminToken: string;
+  let userToken: string;
 
   const uniqueRoomId = () => new Types.ObjectId().toString();
 
@@ -17,6 +39,9 @@ describe('ScheduleController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+
+    adminToken = await loginAs(app, ADMIN_EMAIL);
+    userToken = await loginAs(app, USER_EMAIL);
   });
 
   afterAll(async () => {
@@ -24,7 +49,7 @@ describe('ScheduleController (e2e)', () => {
   });
 
   describe('POST /schedule/create', () => {
-    it('should create a schedule item (201) and verify fields then delete', async () => {
+    it('should create a schedule item (201) as user and verify fields then delete', async () => {
       const dto = {
         date: '2026-07-15',
         roomId: uniqueRoomId(),
@@ -33,6 +58,7 @@ describe('ScheduleController (e2e)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/schedule/create')
+        .set(authHeader(userToken))
         .send(dto)
         .expect(201);
 
@@ -46,12 +72,27 @@ describe('ScheduleController (e2e)', () => {
       expect(getRes.body.roomId).toBe(dto.roomId);
       expect(getRes.body.isDeleted).toBe(false);
 
-      await request(app.getHttpServer()).delete(`/schedule/${id}`).expect(200);
+      await request(app.getHttpServer())
+        .delete(`/schedule/${id}`)
+        .set(authHeader(adminToken))
+        .expect(200);
+    });
+
+    it('should return 401 without token', async () => {
+      await request(app.getHttpServer())
+        .post('/schedule/create')
+        .send({
+          date: '2026-07-15',
+          roomId: uniqueRoomId(),
+          isDeleted: false,
+        })
+        .expect(401);
     });
 
     it('should return 400 for invalid field values', async () => {
       await request(app.getHttpServer())
         .post('/schedule/create')
+        .set(authHeader(adminToken))
         .send({
           date: 12345,
           roomId: 'not-a-mongo-id',
@@ -69,11 +110,13 @@ describe('ScheduleController (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/schedule/create')
+        .set(authHeader(adminToken))
         .send(dto)
         .expect(201);
 
       await request(app.getHttpServer())
         .post('/schedule/create')
+        .set(authHeader(adminToken))
         .send(dto)
         .expect(409);
     });
@@ -89,6 +132,7 @@ describe('ScheduleController (e2e)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/schedule/create')
+        .set(authHeader(adminToken))
         .send(dto)
         .expect(201);
 
@@ -100,7 +144,10 @@ describe('ScheduleController (e2e)', () => {
 
       expect(getRes.body.date).toBe(dto.date);
 
-      await request(app.getHttpServer()).delete(`/schedule/${id}`).expect(200);
+      await request(app.getHttpServer())
+        .delete(`/schedule/${id}`)
+        .set(authHeader(adminToken))
+        .expect(200);
     });
 
     it('should return 404 for non-existent id', async () => {
@@ -118,12 +165,16 @@ describe('ScheduleController (e2e)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/schedule/create')
+        .set(authHeader(adminToken))
         .send(dto)
         .expect(201);
 
       const id = createRes.body._id;
 
-      await request(app.getHttpServer()).delete(`/schedule/${id}`).expect(200);
+      await request(app.getHttpServer())
+        .delete(`/schedule/${id}`)
+        .set(authHeader(adminToken))
+        .expect(200);
 
       await request(app.getHttpServer()).get(`/schedule/${id}`).expect(404);
     });
@@ -139,6 +190,7 @@ describe('ScheduleController (e2e)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/schedule/create')
+        .set(authHeader(adminToken))
         .send(dto)
         .expect(201);
 
@@ -156,7 +208,10 @@ describe('ScheduleController (e2e)', () => {
       );
       expect(created).toBeDefined();
 
-      await request(app.getHttpServer()).delete(`/schedule/${id}`).expect(200);
+      await request(app.getHttpServer())
+        .delete(`/schedule/${id}`)
+        .set(authHeader(adminToken))
+        .expect(200);
     });
 
     it('should not return soft-deleted items', async () => {
@@ -168,12 +223,16 @@ describe('ScheduleController (e2e)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/schedule/create')
+        .set(authHeader(adminToken))
         .send(dto)
         .expect(201);
 
       const id = createRes.body._id;
 
-      await request(app.getHttpServer()).delete(`/schedule/${id}`).expect(200);
+      await request(app.getHttpServer())
+        .delete(`/schedule/${id}`)
+        .set(authHeader(adminToken))
+        .expect(200);
 
       const getAllRes = await request(app.getHttpServer())
         .get('/schedule/getAll')
@@ -187,7 +246,7 @@ describe('ScheduleController (e2e)', () => {
   });
 
   describe('PATCH /schedule/:id', () => {
-    it('should update schedule item fields (200)', async () => {
+    it('should update schedule item fields (200) for regular user', async () => {
       const dto = {
         date: '2026-07-21',
         roomId: uniqueRoomId(),
@@ -196,6 +255,7 @@ describe('ScheduleController (e2e)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/schedule/create')
+        .set(authHeader(adminToken))
         .send(dto)
         .expect(201);
 
@@ -209,6 +269,7 @@ describe('ScheduleController (e2e)', () => {
 
       await request(app.getHttpServer())
         .patch(`/schedule/${id}`)
+        .set(authHeader(userToken))
         .send(updateDto)
         .expect(200);
 
@@ -219,7 +280,23 @@ describe('ScheduleController (e2e)', () => {
       expect(getRes.body.date).toBe(updateDto.date);
       expect(getRes.body.roomId).toBe(updateDto.roomId);
 
-      await request(app.getHttpServer()).delete(`/schedule/${id}`).expect(200);
+      await request(app.getHttpServer())
+        .delete(`/schedule/${id}`)
+        .set(authHeader(adminToken))
+        .expect(200);
+    });
+
+    it('should return 401 without token', async () => {
+      const fakeId = new Types.ObjectId().toString();
+
+      await request(app.getHttpServer())
+        .patch(`/schedule/${fakeId}`)
+        .send({
+          date: '2026-07-22',
+          roomId: uniqueRoomId(),
+          isDeleted: false,
+        })
+        .expect(401);
     });
 
     it('should return null for non-existent id', async () => {
@@ -227,6 +304,7 @@ describe('ScheduleController (e2e)', () => {
 
       const res = await request(app.getHttpServer())
         .patch(`/schedule/${fakeId}`)
+        .set(authHeader(adminToken))
         .send({
           date: '2026-07-22',
           roomId: uniqueRoomId(),
@@ -246,15 +324,20 @@ describe('ScheduleController (e2e)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/schedule/create')
+        .set(authHeader(adminToken))
         .send(dto)
         .expect(201);
 
       const id = createRes.body._id;
 
-      await request(app.getHttpServer()).delete(`/schedule/${id}`).expect(200);
+      await request(app.getHttpServer())
+        .delete(`/schedule/${id}`)
+        .set(authHeader(adminToken))
+        .expect(200);
 
       const res = await request(app.getHttpServer())
         .patch(`/schedule/${id}`)
+        .set(authHeader(adminToken))
         .send(dto)
         .expect(200);
 
@@ -264,6 +347,7 @@ describe('ScheduleController (e2e)', () => {
     it('should return 400 for invalid field values', async () => {
       await request(app.getHttpServer())
         .patch(`/schedule/${new Types.ObjectId().toString()}`)
+        .set(authHeader(adminToken))
         .send({
           date: 12345,
           roomId: 'not-a-mongo-id',
@@ -274,7 +358,7 @@ describe('ScheduleController (e2e)', () => {
   });
 
   describe('DELETE /schedule/:id', () => {
-    it('should soft-delete schedule item (200) and then return 404 on GET', async () => {
+    it('should soft-delete schedule item (200) for regular user', async () => {
       const dto = {
         date: '2026-07-24',
         roomId: uniqueRoomId(),
@@ -283,14 +367,67 @@ describe('ScheduleController (e2e)', () => {
 
       const createRes = await request(app.getHttpServer())
         .post('/schedule/create')
+        .set(authHeader(adminToken))
         .send(dto)
         .expect(201);
 
       const id = createRes.body._id;
 
-      await request(app.getHttpServer()).delete(`/schedule/${id}`).expect(200);
+      await request(app.getHttpServer())
+        .delete(`/schedule/${id}`)
+        .set(authHeader(userToken))
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .delete(`/schedule/${id}`)
+        .set(authHeader(adminToken))
+        .expect(200);
+    });
+
+    it('should soft-delete schedule item (200) for admin and then return 404 on GET', async () => {
+      const dto = {
+        date: '2026-07-24',
+        roomId: uniqueRoomId(),
+        isDeleted: false,
+      };
+
+      const createRes = await request(app.getHttpServer())
+        .post('/schedule/create')
+        .set(authHeader(adminToken))
+        .send(dto)
+        .expect(201);
+
+      const id = createRes.body._id;
+
+      await request(app.getHttpServer())
+        .delete(`/schedule/${id}`)
+        .set(authHeader(adminToken))
+        .expect(200);
 
       await request(app.getHttpServer()).get(`/schedule/${id}`).expect(404);
+    });
+
+    it('should return 401 without token', async () => {
+      const dto = {
+        date: '2026-07-24',
+        roomId: uniqueRoomId(),
+        isDeleted: false,
+      };
+
+      const createRes = await request(app.getHttpServer())
+        .post('/schedule/create')
+        .set(authHeader(adminToken))
+        .send(dto)
+        .expect(201);
+
+      const id = createRes.body._id;
+
+      await request(app.getHttpServer()).delete(`/schedule/${id}`).expect(401);
+
+      await request(app.getHttpServer())
+        .delete(`/schedule/${id}`)
+        .set(authHeader(adminToken))
+        .expect(200);
     });
 
     it('should return 200 even for non-existent id', async () => {
@@ -298,6 +435,7 @@ describe('ScheduleController (e2e)', () => {
 
       await request(app.getHttpServer())
         .delete(`/schedule/${fakeId}`)
+        .set(authHeader(adminToken))
         .expect(200);
     });
   });

@@ -6,6 +6,8 @@ import { AppService } from './app.service';
 import { getMongoConfig } from './configs/mongo.config';
 import { RoomsModule } from './rooms/rooms.module';
 import { ScheduleModule } from './schedule/schedule.module';
+import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { ScheduleModule } from './schedule/schedule.module';
       inject: [ConfigService],
       useFactory: getMongoConfig,
     }),
+    UserModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
