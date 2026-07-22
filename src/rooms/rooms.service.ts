@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Param } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { IdValidationPipe } from '../pipes/id-validation.pipe';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { RoomsModel, RoomsModelDocument } from './rooms.model';
 
@@ -16,11 +17,11 @@ export class RoomsService {
     return await newRoom.save();
   }
 
-  async delete(id: string) {
+  async delete(@Param('id', IdValidationPipe) id: string) {
     return this.roomsModel.findByIdAndDelete(id).exec();
   }
 
-  async get(id: string) {
+  async get(@Param('id', IdValidationPipe) id: string) {
     return this.roomsModel.findById(id).exec();
   }
 
@@ -28,7 +29,7 @@ export class RoomsService {
     return this.roomsModel.find({});
   }
 
-  async update(id: string, dto: CreateRoomDto) {
+  async update(@Param('id', IdValidationPipe) id: string, dto: CreateRoomDto) {
     return this.roomsModel
       .updateOne(
         {

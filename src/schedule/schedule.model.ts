@@ -17,3 +17,4 @@ export class ScheduleModel {
 }
 
 export const ScheduleModelSchema = SchemaFactory.createForClass(ScheduleModel);
+ScheduleModelSchema.index({ date: 1, isDeleted: 1 });
