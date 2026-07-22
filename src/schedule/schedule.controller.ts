@@ -15,6 +15,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
 import { Role } from '../enums/role.enum';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
+import { StatisticDto } from './dto/statistic.dto';
 import { ScheduleService } from './schedule.service';
 
 @Controller('schedule')
@@ -52,5 +53,12 @@ export class ScheduleController {
   @Delete(':id')
   async delete(@Param('id') id: string) {
     await this.scheduleService.delete(id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Post('statistic/byMonth')
+  async getStatisticByMonth(@Body() dto: StatisticDto) {
+    return await this.scheduleService.getStatisticByMonth(dto);
   }
 }

@@ -18,7 +18,7 @@ async function loginAs(
     .send({ email, password: PASSWORD })
     .expect(200);
 
-  return res.body.access_token;
+  return res.body.access_token as string;
 }
 
 function authHeader(token: string) {
