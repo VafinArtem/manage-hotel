@@ -6,8 +6,13 @@ services:
     restart: always
     ports:
       - 3000:3000
-    volumes:
-      - ./.env:/manage-hotel/.env
+    environment:
+      - MONGO_LOGIN=${MONGO_LOGIN}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_AUTH_DB=${MONGO_AUTH_DB}
+      - MONGO_HOST=${MONGO_HOST}
+      - MONGO_PORT=${MONGO_PORT}
+      - JWT_SECRET=${JWT_SECRET}
     networks:
       - mongo_network
 networks:

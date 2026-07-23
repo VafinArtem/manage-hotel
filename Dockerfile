@@ -2,10 +2,10 @@ FROM node:24-alpine
 
 WORKDIR /manage-hotel
 
-ADD package.json package.json
+COPY package.json package.json
 RUN npm install
 
-ADD . .
+COPY  . .
 RUN npm run build
 RUN npm prune --production
 
