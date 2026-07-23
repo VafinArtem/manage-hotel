@@ -1,0 +1,21 @@
+version: '3'
+services:
+  manage-hotel:
+    image: manage-hotel:latest
+    container_name: manage-hotel
+    restart: always
+    ports:
+      - 3000:3000
+    environment:
+      - MONGO_LOGIN=${MONGO_LOGIN}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_AUTH_DB=${MONGO_AUTH_DB}
+      - MONGO_HOST=${MONGO_HOST}
+      - MONGO_PORT=${MONGO_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - mongo_network
+networks:
+  mongo_network:
+    name: mongo_default
+    external: true
